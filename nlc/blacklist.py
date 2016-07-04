@@ -1,0 +1,3 @@
+BLACKLIST = {
+    'en': ['I']
+}
