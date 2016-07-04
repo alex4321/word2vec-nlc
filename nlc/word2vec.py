@@ -1,6 +1,8 @@
 from gensim.models import Word2Vec as Word2VecModel
 import math
 
+TOPN = 30
+
 
 class Vector(dict):
     def __setitem__(self, key, value):
@@ -40,7 +42,9 @@ class Vector(dict):
         for key in other.keys():
             if key not in result.keys():
                 result[key] = 0
-            result[key] = kooficient * other[key]
+            else:
+                result[key] = self[key]
+            result[key] += kooficient * other[key]
         return result
 
     def __add__(self, other):
@@ -66,6 +70,20 @@ class Vector(dict):
         :rtype: Vector
         """
         return self._add_k(other, -1)
+
+    def __truediv__(self, other):
+        """
+        Division of vector to number
+        :param other: cooficient
+        :type other: int|float
+        :return: vector
+        :rtype: Vector
+        """
+        assert isinstance(other, float) or isinstance(other, int)
+        result = Vector({})
+        for word in self.keys():
+            result[word] = self[word] / other
+        return result
 
     def length(self):
         """
@@ -126,7 +144,7 @@ class Word2Vec:
             negative = []
         positive_words = self._filter_words(positive)
         negative_words = self._filter_words(negative)
-        items = self.model.most_similar(positive=positive_words, negative=negative_words)
+        items = self.model.most_similar(positive=positive_words, negative=negative_words, topn=TOPN)
         result = {}
         for item in items:
             word, similarity = item

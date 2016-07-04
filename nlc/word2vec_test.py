@@ -14,5 +14,3 @@ class Word2VecTest(TestCase):
         wrong = self.model.similar(positive=['It', 'dog'])
         demo_distance = demo - input
         wrong_distance = wrong - input
-        print(demo_distance, demo_distance.length())
-        print(wrong_distance, wrong_distance.length())

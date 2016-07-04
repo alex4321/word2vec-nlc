@@ -1,3 +1,3 @@
 BLACKLIST = {
-    'en': ['I']
+    'en': ['I', 'a']
 }

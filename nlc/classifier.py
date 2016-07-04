@@ -36,12 +36,10 @@ class ClassVectors(dict):
         :param key: class name
         :type key: str
         :param value: class example vectors
-        :type value: list[Vector]
+        :type value: Vector
         """
         assert isinstance(key, str)
-        assert isinstance(value, list)
-        for item in value:
-            assert isinstance(item, Vector)
+        assert isinstance(value, Vector)
         super(ClassVectors, self).__setitem__(key, value)
 
     def __getitem__(self, item):
@@ -50,7 +48,7 @@ class ClassVectors(dict):
         :param item: class name
         :type item: str
         :return: items
-        :rtype: list[Vector]
+        :rtype: Vector
         """
         assert isinstance(item, str)
         return super(ClassVectors, self).__getitem__(item)
@@ -100,11 +98,52 @@ class Classifier:
         """
         self.word2vec = word2vec
         self.extractor = Extractor(language)
-        self.class_vectors = ClassVectors({})
+        self._build_clusters(classes)
+        self._calculate_center()
+
+    def _build_clusters(self, classes):
+        """
+        :param classes: Classes
+        :type classes: Classes
+        """
+        self.clusters = ClassVectors({})
         for name in classes.keys():
             phrases = classes[name]
-            phrase_vectors = [word2vec.similar(self.extractor.extract(phrase)) for phrase in phrases]
-            self.class_vectors[name] = phrase_vectors
+            phrase_vectors = [self.word2vec.similar(self.extractor.extract(phrase)) for phrase in phrases]
+            middle_vector = Vector({})
+            for vector in phrase_vectors:
+                middle_vector += vector
+            middle_vector /= float(len(phrase_vectors))
+            self.clusters[name] = middle_vector
+
+    def _calculate_center(self):
+        self.center = Vector({})
+        for class_name in self.clusters.keys():
+            self.center += self.clusters[class_name]
+        self.center /= len(self.clusters)
+
+    def _confidence(self, vector, class_name):
+        """
+        :type vector: Vector
+        :type class_name: str
+        :rtype: float
+        """
+        vector_to_class = vector - self.clusters[class_name]
+        class_to_center = self.clusters[class_name] - self.center
+        no_confidence = vector_to_class.length() / class_to_center.length()
+        if no_confidence > 1:
+            no_confidence = 1
+        return 1 - no_confidence
+
+    def _class_diff(self, vector, class_name):
+        """
+        :type vector: Vector
+        :type class_name: str
+        :rtype: Vector
+        """
+        diff_vector = self.clusters[class_name] - vector
+        return diff_vector
+
 
     def classify(self, text):
         """
@@ -115,17 +154,11 @@ class Classifier:
         :rtype: list[ClassifierResultItem]
         """
         vector = self.word2vec.similar(self.extractor.extract(text))
-        class_diff_lengths = {}
-        for class_name in self.class_vectors:
-            class_vectors = self.class_vectors[class_name]
-            for class_vector in class_vectors:
-                diff_vector = vector - class_vector
-                if class_name not in class_diff_lengths.keys() or diff_vector.length() < class_diff_lengths[class_name]:
-                    class_diff_lengths[class_name] = diff_vector.length()
         result = []
-        print(class_diff_lengths)
-        for class_name in class_diff_lengths.keys():
-            diff_length = class_diff_lengths[class_name]
-            result.append(ClassifierResultItem(class_name, diff_length, 0))
+        for class_name in self.clusters.keys():
+            result.append(ClassifierResultItem(
+                class_name,
+                self._class_diff(vector, class_name).length(),
+                self._confidence(vector, class_name)))
         result.sort()
         return result
