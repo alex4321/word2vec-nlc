@@ -1,3 +1,0 @@
-BLACKLIST = {
-    'en': ['I', 'a']
-}
