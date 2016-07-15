@@ -1,0 +1,4 @@
+from .word2vec_reader_test import Word2VecReaderTest
+from .exploder_test import ExploderTest
+from .word2vec_factory_test import Word2VecFactoryTest
+from .word2vec_classifier_test import Word2VecClassifierTest
