@@ -73,4 +73,4 @@ class ExploderTest(unittest.TestCase):
         ]
         exploder = Exploder(stop_words)
         self.assertEqual(exploder.explode("So, what you can do?"),
-                         ["so", "what", "you", "can", "do"])
+                         ["what", "can", "do"])
