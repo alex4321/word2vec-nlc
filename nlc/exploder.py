@@ -29,4 +29,4 @@ class Exploder:
             else:
                 items[-1] += char
         items = [item for item in items if item != ""]
-        return [item for item in items if item not in self.delimeters]
+        return [item for item in items if item not in self.stop_words]
